@@ -27,7 +27,7 @@ export function Hero() {
         {/* Imagem de destaque */}
         <div className="order-1 md:order-2 md:col-span-8">
           <div className="relative aspect-[4/5] w-full overflow-hidden rounded-sm bg-card md:aspect-[16/11]">
-            {/* Placeholder de imagem — substituir por foto real do produto em destaque */}
+          
             <img
            src="/placeholders/bag1.jpg"
               alt="Bolsa NUMA Crochê Star, em fio de malha preto trançado com corrente de amuletos"
