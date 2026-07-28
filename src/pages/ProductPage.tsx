@@ -29,6 +29,12 @@ export function ProductPage() {
     .filter((p) => p.collection === product.collection && p.slug !== product.slug)
     .slice(0, 3);
 
+  // Função que adiciona o produto e abre a gaveta do carrinho automaticamente
+  const handleAddToCart = () => {
+    addItem(product);
+    window.dispatchEvent(new Event('abrirCarrinho'));
+  };
+
   return (
     <div>
       {/* Trilha de volta */}
@@ -72,7 +78,7 @@ export function ProductPage() {
           </p>
 
           <button
-            onClick={() => addItem(product)}
+            onClick={handleAddToCart}
             disabled={isInCart(product.slug)}
             className="mt-8 w-full bg-ink py-4 font-mono text-xs uppercase tracking-label text-bone transition-colors duration-300 ease-knot hover:bg-clay disabled:cursor-not-allowed disabled:bg-graphite"
           >
@@ -136,3 +142,5 @@ export function ProductPage() {
     </div>
   );
 }
+
+export default ProductPage;
