@@ -7,7 +7,7 @@ const NAV_LINKS = [
   { label: "Sobre o ateliê", href: "/#sobre" },
 ];
 
-export function Header() {
+export const Header = ({ onOpenCart }: any) => {
   const [scrolled, setScrolled] = useState(false);
   const { items, openCart } = useCart();
 
