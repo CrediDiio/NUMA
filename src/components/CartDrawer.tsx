@@ -1,39 +1,27 @@
 import React from 'react';
-
-interface CartItem {
-  id?: string | number;
-  title?: string;
-  name?: string;
-  price: number;
-  quantity?: number;
-  image?: string;
-}
+import { useCart } from '../context/CartContext';
 
 interface CartDrawerProps {
   isOpen?: boolean;
   onClose?: () => void;
-  items?: CartItem[];
-  cart?: CartItem[];
 }
 
 export const CartDrawer: React.FC<CartDrawerProps> = ({
-  isOpen = false, // Começa FECHADO para não travar a tela do site
+  isOpen = false,
   onClose,
-  items,
-  cart,
 }) => {
-  // Aceita 'items' ou 'cart'
-  const cartList = items || cart || [];
+  // Pega os itens e a função de remover direto do contexto global do carrinho
+  const { items, removeItem } = useCart();
 
-  // Integração do Checkout Mercado Pago
+  // Função que envia os dados para a API do Mercado Pago
   const handleCheckout = async () => {
-    if (!cartList || cartList.length === 0) {
+    if (!items || items.length === 0) {
       alert('Seu carrinho está vazio!');
       return;
     }
 
     try {
-      const formattedItems = cartList.map((item) => ({
+      const formattedItems = items.map((item: any) => ({
         title: item.title || item.name || 'Produto NUMA',
         price: Number(item.price),
         quantity: Number(item.quantity || 1),
@@ -53,26 +41,25 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         window.location.href = data.init_point;
       } else {
         console.error('Erro na API:', data);
-        alert('Não foi possível gerar o link de pagamento. Tente novamente.');
+        alert('Não foi possível gerar o link de pagamento. Lembre-se que rotas /api/ precisam rodar na Vercel.');
       }
     } catch (error) {
       console.error('Erro no checkout:', error);
-      alert('Ocorreu um erro de conexão ao processar seu pedido.');
+      alert('Ocorreu um erro de conexão. Teste diretamente pelo link da Vercel no ar!');
     }
   };
 
-  // Soma o valor total
-  const total = cartList.reduce(
-    (acc, item) => acc + Number(item.price) * (item.quantity || 1),
+  // Soma o valor total dos itens
+  const total = items.reduce(
+    (acc: number, item: any) => acc + Number(item.price) * (item.quantity || 1),
     0
   );
 
-  // Se o carrinho estiver fechado, destrava a tela completamente
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
-      {/* Fundo escuro: clicar fora fecha o carrinho */}
+      {/* Fundo escuro que fecha ao clicar fora */}
       <div 
         className="fixed inset-0 bg-black/50 transition-opacity cursor-pointer" 
         onClick={onClose}
@@ -81,29 +68,28 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       {/* Painel do Carrinho */}
       <div className="relative z-10 w-full max-w-md bg-white h-full shadow-xl flex flex-col justify-between p-6">
         
-        {/* Cabeçalho com Botão ✕ */}
+        {/* Cabeçalho */}
         <div className="flex items-center justify-between border-b pb-4">
           <h2 className="text-xl font-bold text-gray-800">Seu Carrinho</h2>
           <button
             onClick={onClose}
             type="button"
             className="text-gray-500 hover:text-black font-bold text-2xl p-1 leading-none"
-            aria-label="Fechar"
           >
             ✕
           </button>
         </div>
 
-        {/* Lista dos Produtos */}
+        {/* Lista de Produtos com Botão de Remover */}
         <div className="flex-1 overflow-y-auto py-4">
-          {cartList.length === 0 ? (
+          {items.length === 0 ? (
             <p className="text-gray-500 text-center mt-10">
               O seu carrinho está vazio.
             </p>
           ) : (
-            cartList.map((item, index) => (
+            items.map((item: any, index: number) => (
               <div
-                key={item.id || index}
+                key={item.id || item.slug || index}
                 className="flex items-center justify-between py-3 border-b"
               >
                 <div>
@@ -114,15 +100,27 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     Qtd: {item.quantity || 1} x R$ {Number(item.price).toFixed(2)}
                   </p>
                 </div>
-                <p className="font-bold text-gray-900">
-                  R$ {(Number(item.price) * (item.quantity || 1)).toFixed(2)}
-                </p>
+                
+                <div className="flex items-center gap-3">
+                  <p className="font-bold text-gray-900">
+                    R$ {(Number(item.price) * (item.quantity || 1)).toFixed(2)}
+                  </p>
+                  
+                  {/* Botão de Remover Item */}
+                  <button
+                    onClick={() => removeItem(item.slug || item.id)}
+                    className="text-red-500 hover:text-red-700 p-1 rounded transition-colors"
+                    title="Remover item"
+                  >
+                    🗑️
+                  </button>
+                </div>
               </div>
             ))
           )}
         </div>
 
-        {/* Rodapé e Botão de Checkout */}
+        {/* Rodapé e Botão de Finalizar */}
         <div className="border-t pt-4 space-y-4">
           <div className="flex justify-between items-center text-lg font-bold text-gray-900">
             <span>Total:</span>
@@ -131,9 +129,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
           <button
             onClick={handleCheckout}
-            disabled={cartList.length === 0}
+            disabled={items.length === 0}
             className={`w-full py-3 px-4 rounded-lg font-bold text-white transition-all ${
-              cartList.length === 0
+              items.length === 0
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-black hover:bg-gray-800 active:scale-95'
             }`}

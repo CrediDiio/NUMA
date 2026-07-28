@@ -5,12 +5,15 @@ import { Footer } from "./components/Footer";
 import { CartDrawer } from "./components/CartDrawer";
 import { Home } from "./pages/Home";
 import { ProductPage } from "./pages/ProductPage";
+import { useCart } from "./context/CartContext"; // Importa o contexto do carrinho
 
 function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
+  
+  // Pega os itens reais salvos no contexto global da loja
+  const { items } = useCart();
 
-  // 👂 NOVO: Este "ouvido" fica prestando atenção. 
-  // Se alguém gritar 'abrirCarrinho', ele abre a aba na hora!
+  // Escuta o sinal para abrir o carrinho automaticamente
   useEffect(() => {
     const handleOpen = () => setIsCartOpen(true);
     window.addEventListener('abrirCarrinho', handleOpen);
@@ -30,9 +33,10 @@ function App() {
       
       <Footer />
       
+      {/* Passa os itens do carrinho e a função de fechar para a gaveta */}
       <CartDrawer 
         isOpen={isCartOpen} 
-        onClose={() => setIsCartOpen(false)} 
+        onClose={() => setIsCartOpen(false)}
       />
     </div>
   );
