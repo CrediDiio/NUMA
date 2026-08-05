@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
 
 interface CartDrawerProps {
@@ -10,8 +10,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   isOpen = false,
   onClose,
 }) => {
-  // Pega os itens e a função de remover direto do contexto global do carrinho
   const { items, removeItem } = useCart();
+  const [isLoading, setIsLoading] = useState(false);
 
   // Função que envia os dados para a API do Mercado Pago
   const handleCheckout = async () => {
@@ -19,6 +19,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       alert('Seu carrinho está vazio!');
       return;
     }
+
+    setIsLoading(true);
 
     try {
       const formattedItems = items.map((item: any) => ({
@@ -41,11 +43,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         window.location.href = data.init_point;
       } else {
         console.error('Erro na API:', data);
-        alert('Não foi possível gerar o link de pagamento. Lembre-se que rotas /api/ precisam rodar na Vercel.');
+        alert('Não foi possível gerar o link de pagamento.');
+        setIsLoading(false);
       }
     } catch (error) {
       console.error('Erro no checkout:', error);
-      alert('Ocorreu um erro de conexão. Teste diretamente pelo link da Vercel no ar!');
+      alert('Ocorreu um erro de conexão.');
+      setIsLoading(false);
     }
   };
 
@@ -80,7 +84,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           </button>
         </div>
 
-        {/* Lista de Produtos com Botão de Remover */}
+        {/* Lista de Produtos */}
         <div className="flex-1 overflow-y-auto py-4">
           {items.length === 0 ? (
             <p className="text-gray-500 text-center mt-10">
@@ -106,7 +110,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     R$ {(Number(item.price) * (item.quantity || 1)).toFixed(2)}
                   </p>
                   
-                  {/* Botão de Remover Item */}
                   <button
                     onClick={() => removeItem(item.slug || item.id)}
                     className="text-red-500 hover:text-red-700 p-1 rounded transition-colors"
@@ -129,14 +132,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
           <button
             onClick={handleCheckout}
-            disabled={items.length === 0}
+            disabled={items.length === 0 || isLoading}
             className={`w-full py-3 px-4 rounded-lg font-bold text-white transition-all ${
-              items.length === 0
+              items.length === 0 || isLoading
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-black hover:bg-gray-800 active:scale-95'
             }`}
           >
-            Finalizar Compra
+            {isLoading ? 'Redirecionando...' : 'Finalizar Compra'}
           </button>
         </div>
 
